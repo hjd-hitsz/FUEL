@@ -83,6 +83,10 @@ public:
 
 private:
   void splitLargeFrontiers(list<Frontier>& frontiers);
+  /// @brief 采用PCA，沿第一主成分轴对Frontier进行分割
+  /// @param frontier 输入的大的Frontier
+  /// @param splits 分割的若干小的Frontier
+  /// @return true：需要分割，false：不需要分割
   bool splitHorizontally(const Frontier& frontier, list<Frontier>& splits);
   void mergeFrontiers(Frontier& ftr1, const Frontier& ftr2);
   /// @brief 检测原先的Frontier是否发生改变（是否保持Frontier状态）
@@ -120,7 +124,7 @@ private:
   // Data
   vector<char> frontier_flag_;
   list<Frontier> frontiers_, dormant_frontiers_;
-  /// @brief 存储需要split的Frontier
+  /// @brief 存储需要split的Frontier（split前后的Frontier都存在这个变量里）
   list<Frontier> tmp_frontiers_;
   vector<int> removed_ids_;
   list<Frontier>::iterator first_new_ftr_;
