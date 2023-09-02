@@ -10,7 +10,10 @@ using Eigen::Vector3d;
 
 namespace fast_planner {
 struct FSMData {
-  // FSM data
+  //标志位
+  //trigger_判断是否有waypoint传入
+  //have_odom_判断是否有odometry数据
+  //static_state_判断是否是否进行规划，true：进行replan
   bool trigger_, have_odom_, static_state_;
   vector<string> state_str_;
 

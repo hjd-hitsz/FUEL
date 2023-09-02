@@ -143,6 +143,9 @@ int FastExplorationManager::planExploreMotion(
         auto tmp = ed_->points_[indices[i]];
         ed_->unrefined_points_.push_back(tmp);
         ed_->refined_ids_.push_back(indices[i]);
+        // Refine的双重条件，当条件都不满足时停止refine
+        // 1.一共Refine从起点开始的Nf个点
+        // 2.Viewpoint与起点距离不超过R_Nf
         if ((tmp - pos).norm() > ep_->refined_radius_ && ed_->refined_ids_.size() >= 2) break;
       }
 
@@ -247,7 +250,9 @@ int FastExplorationManager::planExploreMotion(
     planner_manager_->planExploreTraj(ed_->path_next_goal_, vel, acc, time_lb);
     ed_->next_goal_ = next_pos;
 
-  } else if (len > radius_far) {
+  }
+  // 总路径长超过radius_far，选取在radius_far范围内的viewpoint进行规划
+  else if (len > radius_far) {
     // Next viewpoint is far away, select intermediate goal on geometric path (this also deal with
     // dead end)
     std::cout << "Far goal." << std::endl;

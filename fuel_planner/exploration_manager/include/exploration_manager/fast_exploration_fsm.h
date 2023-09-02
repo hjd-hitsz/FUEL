@@ -34,7 +34,10 @@ enum EXPL_STATE { INIT, WAIT_TRIGGER, PLAN_TRAJ, PUB_TRAJ, EXEC_TRAJ, FINISH };
 class FastExplorationFSM {
 private:
   /* planning utils */
+  //链接到expl_manager_中planner_manager_的地址，主要用于存储规划结果
+  //局部规划采用FastPlanner算法
   shared_ptr<FastPlannerManager> planner_manager_;
+  //对exploration全过程进行管理
   shared_ptr<FastExplorationManager> expl_manager_;
   shared_ptr<PlanningVisualization> visualization_;
 
@@ -51,13 +54,21 @@ private:
   ros::Publisher replan_pub_, new_pub_, bspline_pub_;
 
   /* helper functions */
+  //**调用自主探索规划器**，重要！！
   int callExplorationPlanner();
   void transitState(EXPL_STATE new_state, string pos_call);
 
   /* ROS functions */
+  //进行机器人状态管理与切换，频率：100Hz
   void FSMCallback(const ros::TimerEvent& e);
+  //进行机器人安全检查，频率：20Hz
+  //逻辑：EXEC_TRAJ时进行碰撞检测，如果检测到碰撞则切换至PLAN_TRAJ
   void safetyCallback(const ros::TimerEvent& e);
+  //在WAIT_TRIGGER和FINISH进行FIS检查与更新，并将FIS进行可视化显示
+  //REMARKS: 1.FINISH时FIS应为空，没必要进行可视化显示；
+  //2.WAIT_TRIGGER时计算并显示Frontier
   void frontierCallback(const ros::TimerEvent& e);
+  //接收到waypoint后切换状态：由WAIT_TRIGGER到PLAN_TRAJ
   void triggerCallback(const nav_msgs::PathConstPtr& msg);
   void odometryCallback(const nav_msgs::OdometryConstPtr& msg);
   void visualize();

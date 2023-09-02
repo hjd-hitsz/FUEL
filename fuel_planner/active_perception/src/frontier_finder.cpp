@@ -154,8 +154,8 @@ void FrontierFinder::expandFrontier(
       frontier_flag_[adr] = 1;
     }
   }
+  // 计算expanded这个frontier的具体信息，以便后面split这个Frontier
   if (expanded.size() > cluster_min_) {
-    // Compute detailed info
     Frontier frontier;
     frontier.cells_ = expanded;
     computeFrontierInfo(frontier);

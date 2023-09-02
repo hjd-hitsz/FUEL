@@ -28,6 +28,8 @@ public:
 
   void initialize(ros::NodeHandle& nh);
 
+  //**自主探索过程主函数**，重要！！
+  //传入机器人当前状态，输出规划成功标志位
   int planExploreMotion(const Vector3d& pos, const Vector3d& vel, const Vector3d& acc,
                         const Vector3d& yaw);
 

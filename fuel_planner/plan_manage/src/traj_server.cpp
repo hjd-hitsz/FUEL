@@ -186,6 +186,7 @@ void odomCallbck(const nav_msgs::Odometry& msg) {
   if (traj_real_.size() > 10000) traj_real_.erase(traj_real_.begin(), traj_real_.begin() + 1000);
 }
 
+//没有对应消息的发布者
 void pgTVioCallback(geometry_msgs::Pose msg) {
   // World to odom
   Eigen::Quaterniond q =
@@ -340,97 +341,6 @@ void cmdCallback(const ros::TimerEvent& e) {
 
   // if (traj_cmd_.size() > 100000)
   //   traj_cmd_.erase(traj_cmd_.begin(), traj_cmd_.begin() + 1000);
-}
-
-void test() {
-  // Test B-spline
-  // Generate the first B-spline's control points from a sin curve
-  vector<Eigen::Vector3d> samples;
-  const double dt1 = M_PI / 6.0;
-  for (double theta = 0; theta <= 2 * M_PI; theta += dt1) {
-    Eigen::Vector3d sample(theta, sin(theta), 1);
-    samples.push_back(sample);
-  }
-  Eigen::MatrixXd points(samples.size(), 3);
-  for (int i = 0; i < samples.size(); ++i)
-    points.row(i) = samples[i].transpose();
-
-  Eigen::VectorXd times(samples.size() - 1);
-  times.setConstant(dt1);
-  times[0] += dt1;
-  times[times.rows() - 1] += dt1;
-  Eigen::Vector3d zero(0, 0, 0);
-
-  PolynomialTraj poly;
-  PolynomialTraj::waypointsTraj(points, zero, zero, zero, zero, times, poly);
-
-  const int degree = 5;
-  double duration = poly.getTotalTime();
-  vector<Eigen::Vector3d> traj_pts;
-  for (double ts = 0; ts <= duration; ts += 0.01)
-    traj_pts.push_back(poly.evaluate(ts, 0));
-  // displayTrajWithColor(traj_pts, 0.05, Eigen::Vector4d(1, 0, 0, 1), 99);
-
-  // Fit the polynomialw with B-spline
-  const int seg_num = 30;
-  double dt = duration / seg_num;
-  vector<Eigen::Vector3d> point_set, boundary_der;
-  for (double ts = 0; ts <= 1e-3 + duration; ts += dt)
-    point_set.push_back(poly.evaluate(ts, 0));
-
-  boundary_der.push_back(poly.evaluate(0, 1));
-  boundary_der.push_back(poly.evaluate(duration, 1));
-  boundary_der.push_back(poly.evaluate(0, 2));
-  boundary_der.push_back(poly.evaluate(duration, 2));
-
-  Eigen::MatrixXd ctrl_pts;
-  NonUniformBspline::parameterizeToBspline(dt, point_set, boundary_der, degree, ctrl_pts);
-  NonUniformBspline fitted(ctrl_pts, degree, dt);
-
-  traj_pts.clear();
-  double duration2 = fitted.getTimeSum();
-  for (double ts = 0; ts <= duration2; ts += 0.01)
-    traj_pts.push_back(fitted.evaluateDeBoorT(ts));
-
-  vector<Eigen::Vector3d> ctrl_pts_vec;
-  for (int i = 0; i < ctrl_pts.rows(); ++i) {
-    Eigen::Vector3d pr = ctrl_pts.row(i).transpose();
-    ctrl_pts_vec.push_back(pr);
-  }
-  displayTrajWithColor(ctrl_pts_vec, 0.1, Eigen::Vector4d(1, 1, 0, 1), 98);
-  displayTrajWithColor(traj_pts, 0.05, Eigen::Vector4d(1, 0, 0, 1), 99);
-
-  auto vel = fitted.getDerivative();
-  auto acc = vel.getDerivative();
-
-  ros::Duration(0.1).sleep();
-
-  // Pub the traj
-  auto t1 = ros::Time::now();
-  double tn = (ros::Time::now() - t1).toSec();
-  while (tn < duration && ros::ok()) {
-    // Eigen::Vector3d p = bspline.evaluateDeBoorT(tn);
-    // Eigen::Vector3d v = vel.evaluateDeBoorT(tn);
-    // Eigen::Vector3d a = acc.evaluateDeBoorT(tn);
-    Eigen::Vector3d p = fitted.evaluateDeBoorT(tn);
-    Eigen::Vector3d v = vel.evaluateDeBoorT(tn);
-    Eigen::Vector3d a = acc.evaluateDeBoorT(tn);
-
-    cmd.header.stamp = ros::Time::now();
-    cmd.position.x = p(0);
-    cmd.position.y = p(1);
-    cmd.position.z = p(2);
-    cmd.velocity.x = v(0);
-    cmd.velocity.y = v(1);
-    cmd.velocity.z = v(2);
-    cmd.acceleration.x = a(0);
-    cmd.acceleration.y = a(1);
-    cmd.acceleration.z = a(2);
-    pos_cmd_pub.publish(cmd);
-
-    ros::Duration(0.02).sleep();
-    tn = (ros::Time::now() - t1).toSec();
-  }
 }
 
 int main(int argc, char** argv) {

@@ -55,7 +55,9 @@ public:
   FrontierFinder(const shared_ptr<EDTEnvironment>& edt, ros::NodeHandle& nh);
   ~FrontierFinder();
 
+  //Search frontiers and group them into clusters
   void searchFrontiers();
+  //Find viewpoints (x,y,z,yaw) for all frontier clusters
   void computeFrontiersToVisit();
 
   void getFrontiers(vector<vector<Vector3d>>& clusters);
@@ -83,10 +85,16 @@ private:
   void splitLargeFrontiers(list<Frontier>& frontiers);
   bool splitHorizontally(const Frontier& frontier, list<Frontier>& splits);
   void mergeFrontiers(Frontier& ftr1, const Frontier& ftr2);
+  /// @brief 检测原先的Frontier是否发生改变（是否保持Frontier状态）
+  /// @param ft 待检测的Frontier
+  /// @return true：不再是Frontier false：仍为Frontier
   bool isFrontierChanged(const Frontier& ft);
   bool haveOverlap(const Vector3d& min1, const Vector3d& max1, const Vector3d& min2,
                    const Vector3d& max2);
   void computeFrontierInfo(Frontier& frontier);
+  /// @brief 调用PCL库中的VoxelGrid过滤器来对输入的点云数据进行下采样（将点云中的点按照一定规则进行筛选，以减少点云的密度）
+  /// @param cluster_in cluster中的cells坐标（点云）
+  /// @param cluster_out 下采样后的cells坐标
   void downsample(const vector<Vector3d>& cluster_in, vector<Vector3d>& cluster_out);
   void sampleViewpoints(Frontier& frontier);
 
@@ -111,7 +119,9 @@ private:
 
   // Data
   vector<char> frontier_flag_;
-  list<Frontier> frontiers_, dormant_frontiers_, tmp_frontiers_;
+  list<Frontier> frontiers_, dormant_frontiers_;
+  /// @brief 存储需要split的Frontier
+  list<Frontier> tmp_frontiers_;
   vector<int> removed_ids_;
   list<Frontier>::iterator first_new_ftr_;
   Frontier next_frontier_;

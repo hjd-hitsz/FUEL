@@ -159,12 +159,6 @@ int FastExplorationFSM::callExplorationPlanner() {
                                              fd_->start_yaw_);
   classic_ = false;
 
-  // int res = expl_manager_->classicFrontier(fd_->start_pt_, fd_->start_yaw_[0]);
-  // classic_ = true;
-
-  // int res = expl_manager_->rapidFrontier(fd_->start_pt_, fd_->start_vel_, fd_->start_yaw_[0],
-  // classic_);
-
   if (res == SUCCEED) {
     auto info = &planner_manager_->local_data_;
     info->start_time_ = (ros::Time::now() - time_r).toSec() > 0 ? ros::Time::now() : time_r;
@@ -302,26 +296,6 @@ void FastExplorationFSM::frontierCallback(const ros::TimerEvent& e) {
       // "frontier_boxes", i, 4);
     }
   }
-
-  // if (!fd_->static_state_)
-  // {
-  //   static double astar_time = 0.0;
-  //   static int astar_num = 0;
-  //   auto t1 = ros::Time::now();
-
-  //   planner_manager_->path_finder_->reset();
-  //   planner_manager_->path_finder_->setResolution(0.4);
-  //   if (planner_manager_->path_finder_->search(fd_->odom_pos_, Vector3d(-5, 0, 1)))
-  //   {
-  //     auto path = planner_manager_->path_finder_->getPath();
-  //     visualization_->drawLines(path, 0.05, Vector4d(1, 0, 0, 1), "astar", 0, 6);
-  //     auto visit = planner_manager_->path_finder_->getVisited();
-  //     visualization_->drawCubes(visit, 0.3, Vector4d(0, 0, 1, 0.4), "astar-visit", 0, 6);
-  //   }
-  //   astar_num += 1;
-  //   astar_time = (ros::Time::now() - t1).toSec();
-  //   ROS_WARN("Average astar time: %lf", astar_time);
-  // }
 }
 
 void FastExplorationFSM::triggerCallback(const nav_msgs::PathConstPtr& msg) {
